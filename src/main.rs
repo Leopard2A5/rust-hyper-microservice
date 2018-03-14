@@ -33,7 +33,7 @@ fn main() {
     };
 
     let server = Http::new()
-        .bind(&addr, || Ok(router::Router))
+        .bind(&addr, move || Ok(router::Router(pool.clone())))
         .unwrap();
 
     info!("Server listening on {}", addr);

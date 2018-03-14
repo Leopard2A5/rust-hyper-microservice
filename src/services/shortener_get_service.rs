@@ -1,10 +1,15 @@
 use hyper::{self, StatusCode};
 use hyper::server::{Request, Response, Service};
-use hyper::header::{ContentLength, Location};
+use hyper::header::Location;
 use futures::future::{self, Future};
 use ::request_utils::decode_query;
 
-pub struct ShortenerGetService;
+use diesel::prelude::*;
+use models::*;
+use schema::urls::dsl::*;
+use db_connection::Connection;
+
+pub struct ShortenerGetService(pub Connection);
 impl Service for ShortenerGetService {
     type Request = Request;
     type Response = Response;
@@ -14,18 +19,34 @@ impl Service for ShortenerGetService {
     fn call(&self, req: Self::Request) -> Self::Future {
         let query = decode_query(req.query());
         let url = query.get("url");
-        let value = url
-            .map(|_url| "http://www.google.com");
 
-        Box::new(future::ok(
-            match value {
-                Some(val) => Response::new()
-                    .with_status(StatusCode::MovedPermanently)
-                    .with_header(Location::new(val))
-                ,
-                None => Response::new()
-                    .with_header(ContentLength(0))
+        let response = match url {
+            None => Response::new()
+                .with_status(StatusCode::BadRequest),
+            Some(url) => {
+                let tmp = urls
+                    .filter(short.eq(url))
+                    .load::<Url>(&*self.0);
+                match tmp {
+                    Ok(vec) => {
+                        if let Some(url) = vec.get(0) {
+                            let text = url.long.clone();
+                            Response::new()
+                                .with_status(StatusCode::MovedPermanently)
+                                .with_header(Location::new(text))
+                        } else {
+                            Response::new()
+                                .with_status(StatusCode::NotFound)
+                        }
+                    },
+                    Err(err) => {
+                        error!("Error querying database: {}", err);
+                        Response::new()
+                            .with_status(StatusCode::InternalServerError)
+                    }
+                }
             }
-        ))
+        };
+        Box::new(future::ok(response))
     }
 }
