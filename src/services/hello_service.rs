@@ -12,6 +12,7 @@ impl Service for HelloService {
 
     fn call(&self, _req: Self::Request) -> Self::Future {
         let text = "Hello, world!";
+
         Box::new(
             future::ok(
                 Response::new()
