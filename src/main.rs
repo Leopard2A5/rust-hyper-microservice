@@ -8,26 +8,14 @@ extern crate r2d2;
 extern crate r2d2_postgres;
 extern crate r2d2_diesel;
 
-use hyper::server::Http;
-use std::env;
-use dotenv::dotenv;
-use diesel::prelude::*;
-use diesel::pg::PgConnection;
-
 mod services;
+mod db_connection;
 mod schema;
 mod models;
 
-fn build_connection_pool() -> r2d2::Pool<r2d2_diesel::ConnectionManager<PgConnection>> {
-    dotenv().ok();
-    let url = env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set!");
-    let manager = r2d2_diesel::ConnectionManager::<PgConnection>::new(url);
-    r2d2::Pool::builder()
-        .max_size(5)
-        .build(manager)
-        .expect("Failed to create pool")
-}
+use hyper::server::Http;
+use std::env;
+use db_connection::build_connection_pool;
 
 fn main() {
     env_logger::init();
@@ -41,7 +29,7 @@ fn main() {
     };
 
     let server = Http::new()
-        .bind(&addr, move || Ok(services::HelloService(pool.clone())))
+        .bind(&addr, move || Ok(services::HelloService))
         .unwrap();
 
     info!("Server listening on {}", addr);
