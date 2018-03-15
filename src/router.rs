@@ -27,8 +27,9 @@ impl Service for Router {
         };
 
         match (req.method(), req.path()) {
-            (&Method::Get, "/") => HelloService{}.call(req),
-            (&Method::Get, "/urls") => ShortenerGetService(conn).call(req),
+            (&Method::Get,  "/") => HelloService{}.call(req),
+            (&Method::Get,  "/urls") => ShortenerGetService(conn).call(req),
+            (&Method::Post, "/urls") => ShortenerPostService(conn).call(req),
             _ => Box::new(
                 future::ok(
                     Response::new()
