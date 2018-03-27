@@ -1,0 +1,4 @@
+CREATE TABLE urls (
+    short VARCHAR NOT NULL PRIMARY KEY,
+    long VARCHAR NOT NULL
+)
