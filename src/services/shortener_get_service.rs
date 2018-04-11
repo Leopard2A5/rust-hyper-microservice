@@ -9,13 +9,18 @@ use models::*;
 use schema::urls::dsl;
 use db_connection::Connection;
 
+use regex::Regex;
+
+lazy_static!{
+    static ref RE: Regex = Regex::new(r"/urls/(.+)").unwrap();
+}
+
 pub struct ShortenerGetService(pub Connection);
 impl Service for ShortenerGetService {
     fn handle(&self, req: Request) -> Result<Response, Error> {
-        let query = decode_query(req.query());
-        let url = query
-            .get("url")
-            .ok_or(Error::ValidationError)?;
+        let url = RE.captures(req.path())
+            .ok_or(Error::MissingPathParam)?
+            .get(1).unwrap().as_str();
 
         let urls = dsl::urls
             .filter(dsl::short.eq(url))

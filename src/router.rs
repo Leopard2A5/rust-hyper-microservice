@@ -28,17 +28,21 @@ impl hyper::server::Service for Router {
             }
         };
 
-        let result = match (req.method(), req.path()) {
-            (&Method::Get,  "/") => HelloService{}.handle(req),
-            (&Method::Get,  "/urls") => ShortenerGetService(conn).handle(req),
-            (&Method::Post, "/urls") => ShortenerPostService(conn).handle(req),
-            _ => Ok(Response::new().with_status(NotFound))
+        let result = if *req.method() == Method::Get && req.path() == "/" {
+            HelloService{}.handle(req)
+        } else if *req.method() == Method::Get && req.path().starts_with("/urls") {
+            ShortenerGetService(conn).handle(req)
+        } else if *req.method() == Method::Post && req.path() == "/urls" {
+            ShortenerPostService(conn).handle(req)
+        } else {
+            Ok(Response::new().with_status(NotFound))
         };
 
         let response = match result {
             Ok(response) => response,
             Err(Error::ValidationError) => Response::new().with_status(BadRequest),
             Err(Error::InternalServerError) => Response::new().with_status(InternalServerError),
+            Err(Error::MissingPathParam) => Response::new().with_status(NotFound),
         };
 
         Box::new(future::ok(response))

@@ -14,15 +14,15 @@ Start a dockerized postgres server:
 
 Run diesel setup
 
-Run with `RUST_LOG=info cargo run`
+Run with `cargo run`
 
 ## Endpoints
     GET /
     Says hello to the world.
 
-    GET /urls?url=<value>
+    GET /urls/<value>
     Looks up a stored url.
-    Example: curl 'http://localhost:3000/urls?url=foo' 
+    Example: curl 'http://localhost:3000/urls/foo' 
 
     POST /urls?short=<short>&long=<long>
     Stores the long url under the short key.

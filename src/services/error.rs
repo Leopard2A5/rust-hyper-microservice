@@ -6,6 +6,7 @@ type DieselError = result::Error;
 pub enum Error {
     ValidationError,
     InternalServerError,
+    MissingPathParam
 }
 
 impl From<DieselError> for Error {
