@@ -18,9 +18,12 @@ mod models;
 
 use hyper::server::Http;
 use std::env;
+use dotenv::dotenv;
 use db_connection::build_connection_pool;
 
 fn main() {
+    dotenv().ok();
+
     env_logger::init();
     let _: std::collections::HashMap<&str, &str> = hashmap!{}; // get rid of unused import, maplit is used in tests
 
